@@ -50,23 +50,29 @@
     <div id="challenges" class="space-y-6"></div>
   </div>
 
-  <!-- Modal for hints -->
+  <!-- Modal for hints and instructions -->
   <div id="hint-modal" class="modal">
     <div class="modal-content">
-      <h2 class="text-2xl font-semibold text-blue-300 mb-4">Hint</h2>
-      <p id="hint-content" class="mb-4"></p>
+      <h2 id="modal-title" class="text-2xl font-semibold text-blue-300 mb-4"></h2>
+      <div id="modal-content" class="mb-4"></div>
       <button onclick="closeModal()" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded">Close</button>
     </div>
   </div>
 
   <script>
-    // Challenge data with updated flag format and hints
+    // Challenge data with hints and detailed instructions
     const challenges = [
       {
         id: 1,
         title: "Hidden Treasure (Easy)",
         description: "The flag is hidden somewhere in the page's source code. Can you find it?",
         hint: "View the HTML source (Ctrl+U or right-click > View Source).",
+        instructions: [
+          "Open the browser's developer tools (F12 or right-click > View Page Source).",
+          "Search for the <style> tag in the HTML.",
+          "Look for a CSS rule with #hidden-flag.",
+          "The flag is in the content property: flag{hidden_in_source}."
+        ],
         flag: "flag{hidden_in_source}",
         validator: flag => flag === "flag{hidden_in_source}"
       },
@@ -75,6 +81,12 @@
         title: "Query Quest (Easy)",
         description: "The flag is passed in the URL as a query parameter. Try modifying the URL.",
         hint: "Try visiting ?flag=flag{query_param_flag} in the URL bar.",
+        instructions: [
+          "Look at the browser's URL bar.",
+          "Append ?flag=flag{query_param_flag} to the URL (e.g., http://your-site/?flag=flag{query_param_flag}).",
+          "Press Enter to load the URL.",
+          "Enter the flag from the query parameter: flag{query_param_flag}."
+        ],
         flag: "flag{query_param_flag}",
         validator: flag => {
           const params = new URLSearchParams(window.location.search);
@@ -86,6 +98,13 @@
         title: "Cookie Crumble (Beginner)",
         description: "A flag is stored in a browser cookie. Can you find it?",
         hint: "Check the browser's developer tools (F12 > Application > Cookies).",
+        instructions: [
+          "Open developer tools (F12).",
+          "Go to the 'Application' tab.",
+          "Expand 'Cookies' and select the site URL.",
+          "Find the cookie named 'flag'.",
+          "The value is the flag: flag{cookie_monster}."
+        ],
         flag: "flag{cookie_monster}",
         validator: flag => {
           document.cookie = "flag=flag{cookie_monster}; path=/";
@@ -97,6 +116,12 @@
         title: "CSS Secret (Beginner)",
         description: "The flag is hidden in the CSS styles. Can you locate it?",
         hint: "Inspect the page's styles or check the CSS in the <style> tag.",
+        instructions: [
+          "Open developer tools (F12) and go to the 'Sources' or 'Elements' tab.",
+          "Find the <style> tag in the HTML head.",
+          "Look for a comment or rule containing the flag.",
+          "The flag is: flag{css_secret_flag}."
+        ],
         flag: "flag{css_secret_flag}",
         validator: flag => flag === "flag{css_secret_flag}"
       },
@@ -105,6 +130,12 @@
         title: "Base64 Puzzle (Medium)",
         description: "Decode this Base64 string to find the flag: ZmxhZ3tiYXNlNjRfZGVjb2RlfQ==",
         hint: "Use a Base64 decoder or the atob() function in the browser console.",
+        instructions: [
+          "Copy the Base64 string: ZmxhZ3tiYXNlNjRfZGVjb2RlfQ==.",
+          "Open the browser console (F12 > Console).",
+          "Use the atob() function: atob('ZmxhZ3tiYXNlNjRfZGVjb2RlfQ==').",
+          "The decoded string is the flag: flag{base64_decode}."
+        ],
         flag: "flag{base64_decode}",
         validator: flag => atob("ZmxhZ3tiYXNlNjRfZGVjb2RlfQ==") === flag
       },
@@ -113,6 +144,11 @@
         title: "SQL Injection (Medium)",
         description: "Simulate a SQL injection to reveal the flag.",
         hint: "Enter ' OR '1'='1 in the input field to simulate SQL injection.",
+        instructions: [
+          "In the input field, type exactly: ' OR '1'='1 (including single quotes).",
+          "Submit the input.",
+          "The system will return the flag: flag{sql_injection_win}."
+        ],
         flag: "flag{sql_injection_win}",
         validator: flag => flag === "' OR '1'='1" ? "flag{sql_injection_win}" : false
       },
@@ -121,6 +157,12 @@
         title: "XOR Cipher (Medium)",
         description: "Decrypt this XOR-encrypted flag: 1a0f1c0b1e1c0a1f (key: 42).",
         hint: "Convert hex to bytes, XOR each byte with the key 42 using a script.",
+        instructions: [
+          "Convert the hex string 1a0f1c0b1e1c0a1f to bytes (e.g., [0x1a, 0x0f, ...]).",
+          "XOR each byte with the key 42 (0x2A).",
+          "Use a script like: let hex = '1a0f1c0b1e1c0a1f'; let key = 42; let decrypted = ''; for (let i = 0; i < hex.length; i += 2) { decrypted += String.fromCharCode(parseInt(hex.slice(i, i+2), 16) ^ key); }.",
+          "The result is the flag: flag{xor_decrypted}."
+        ],
         flag: "flag{xor_decrypted}",
         validator: flag => {
           const encrypted = "1a0f1c0b1e1c0a1f";
@@ -138,6 +180,12 @@
         title: "JavaScript Obfuscation (Hard)",
         description: "Deobfuscate this JavaScript to find the flag: eval(function(p,a,c,k,e,d){while(c--)if(k[c])p=p.replace(new RegExp('\\b'+c+'\\b','g'),k[c]);return p}('0{1}',2,2,'flag|obfuscated_flag'.split('|'),0,{}))",
         hint: "Run the eval code in the console or deobfuscate it manually to reveal the flag.",
+        instructions: [
+          "Copy the eval function to the browser console (F12 > Console).",
+          "Execute it to see the output: flag{obfuscated_flag}.",
+          "Alternatively, analyze the function: it replaces 0 with 'flag' and 1 with 'obfuscated_flag'.",
+          "The flag is: flag{obfuscated_flag}."
+        ],
         flag: "flag{obfuscated_flag}",
         validator: flag => flag === "flag{obfuscated_flag}"
       },
@@ -146,6 +194,12 @@
         title: "Network Packet (Hard)",
         description: "Analyze this JSON 'packet': {'data': 'flag_packet_flag', 'protocol': 'TCP', 'hidden': true}.",
         hint: "Extract the flag from the 'data' field of the JSON object.",
+        instructions: [
+          "Examine the JSON object provided in the description.",
+          "Identify the 'data' field: 'flag_packet_flag'.",
+          "The value needs to be formatted as a flag: flag{packet_flag}.",
+          "Enter the flag: flag{packet_flag}."
+        ],
         flag: "flag{packet_flag}",
         validator: flag => flag === "flag{packet_flag}"
       },
@@ -154,6 +208,12 @@
         title: "Reverse Engineering (Expert)",
         description: "Decode this obfuscated JS to find the flag: (function(){var _0x1234=['flag{reverse_engineered}'];return _0x1234[0];})().",
         hint: "Analyze the JavaScript in the browser console to extract the flag.",
+        instructions: [
+          "Copy the JavaScript to the browser console (F12 > Console).",
+          "Execute it to reveal the output: flag{reverse_engineered}.",
+          "Alternatively, inspect the code: it defines an array _0x1234 with one element.",
+          "The flag is: flag{reverse_engineered}."
+        ],
         flag: "flag{reverse_engineered}",
         validator: flag => (function(){var _0x1234=['flag{reverse_engineered}'];return _0x1234[0];})() === flag
       }
@@ -161,6 +221,7 @@
 
     // State management
     let solvedChallenges = JSON.parse(localStorage.getItem('solvedChallenges')) || [];
+    let incorrectAttempts = {};
 
     // Render challenges
     function renderChallenges() {
@@ -187,8 +248,20 @@
     // Show hint in modal
     function showHint(hint) {
       const modal = document.getElementById('hint-modal');
-      const hintContent = document.getElementById('hint-content');
-      hintContent.textContent = hint;
+      const modalTitle = document.getElementById('modal-title');
+      const modalContent = document.getElementById('modal-content');
+      modalTitle.textContent = 'Hint';
+      modalContent.textContent = hint;
+      modal.style.display = 'flex';
+    }
+
+    // Show detailed instructions in modal
+    function showInstructions(instructions) {
+      const modal = document.getElementById('hint-modal');
+      const modalTitle = document.getElementById('modal-title');
+      const modalContent = document.getElementById('modal-content');
+      modalTitle.textContent = 'Detailed Instructions';
+      modalContent.innerHTML = '<ul class="list-disc pl-5">' + instructions.map(item => `<li>${item}</li>`).join('') + '</ul>';
       modal.style.display = 'flex';
     }
 
@@ -207,10 +280,15 @@
         if (!solvedChallenges.includes(challengeId)) {
           solvedChallenges.push(challengeId);
           localStorage.setItem('solvedChallenges', JSON.stringify(solvedChallenges));
+          incorrectAttempts[challengeId] = 0; // Reset attempts on success
           renderChallenges();
         }
       } else {
+        incorrectAttempts[challengeId] = (incorrectAttempts[challengeId] || 0) + 1;
         feedback.innerHTML = '<span class="text-red-400">Incorrect flag. Try again!</span>';
+        if (incorrectAttempts[challengeId] >= 3) {
+          showInstructions(challenge.instructions);
+        }
       }
     }
 
