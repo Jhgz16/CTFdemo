@@ -78,6 +78,20 @@
       localStorage.setItem('score', JSON.stringify(score));
     }
 
+    // Initialize challenge-specific setup (e.g., cookies)
+    function initializeChallenges() {
+      if (window.challenges && Array.isArray(window.challenges)) {
+        const cookieChallenge = window.challenges.find(c => c.id === 3);
+        if (cookieChallenge && cookieChallenge.setup) {
+          try {
+            cookieChallenge.setup();
+          } catch (e) {
+            console.error('Failed to initialize challenge 3:', e);
+          }
+        }
+      }
+    }
+
     // Render challenges
     function renderChallenges() {
       const challengesDiv = document.getElementById('challenges');
@@ -133,8 +147,8 @@
           const message = 'Incorrect flag. Try again!';
           showConfirmation(message, false, incorrectAttempts[challengeId] >= 3 ? getInstructions(challengeId) : null);
         }
-      } catch (e) {
-        console.error(`Validation error for challenge ${challengeId}:`, e);
+      } catch (error) {
+        console.error(`Validation error for challenge ${challengeId}:`, error);
         showConfirmation('Error validating flag. Check console.', false);
       }
     }
@@ -151,6 +165,7 @@
 
     // Initialize
     try {
+      initializeChallenges();
       renderChallenges();
     } catch (e) {
       console.error('Failed to render challenges:', e);
