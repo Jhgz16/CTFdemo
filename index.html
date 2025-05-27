@@ -3,142 +3,82 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.tailwindcss.com https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline'; connect-src 'none'; object-src 'none'; frame-src 'none'">
-  <meta http-equiv="X-Content-Type-Options" content="nosniff">
-  <meta http-equiv="X-XSS-Protection" content="1; mode=block">
   <title>CTF Challenge Arena</title>
-  <script src="https://cdn.tailwindcss.com" integrity="sha384-4f6b2f3+W6A2f5b2f3+W6A4f5b2f4c3+W6A4f5b2f4d3" crossorigin="anonymous"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.2.0/crypto-js.min.js" integrity="sha512-a+SUDuwNzXDvz4XrIcXHuCf089/iJAoN4lmrXJg18XnduKK6enlHGFK8fLWYxY6iW2f3+W6A4f5b2f4c3" crossorigin="anonymous"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
   <style>
     body {
-      background-color: #000;
-      color: #333;
-      font-family: monospace;
+      background-color: #1a202c;
+      color: #e2e8f0;
+      font-family: 'Arial', sans-serif;
     }
-    .card {
-      transition: all 0.2s;
-      background-color: #222;
-      border: 2px solid #444;
+    .challenge-card {
+      transition: all 0.3s ease;
     }
-    .card:hover {
+    .challenge-card:hover {
       transform: scale(1.02);
     }
-    .solved {
-      border-color: #2a2;
-      opacity: 0.7;
+    .solved-card {
+      border: 2px solid #48bb78;
+      opacity: 0.8;
     }
-    .hidden { display: none; }
-    #hidden-flag { content: "flag{source_hunt}";
+    .hidden-flag {
+      display: none;
     }
+    #hidden-flag-1 { content: "flag{source_hunt}"; }
     .modal {
       display: none;
       position: fixed;
       top: 0;
       left: 0;
       width: 100%;
-      height: 100%;    background-color: rgba(0,0,0,0.7);
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
       align-items: center;
       justify-content: center;
-      z-index: 999;
+      z-index: 50;
     }
     .modal-content {
-      background-color: #111;
-      padding: 15px;
-      border-radius: 5px;
-      max-width: 500px;
+      background-color: #2d3748;
+      padding: 20px;
+      border-radius: 8px;
+      max-width: 600px;
       width: 90%;
       max-height: 80vh;
       overflow-y: auto;
-      border: 1px solid #444;
     }
   </style>
 </head>
-<body class="min-h-screen flex flex-col items-center justify-center p-2">
-  <div class="w-full max-w-4xl">
-    <h1 class="text-3xl font-bold text-center mb-3 text-blue-300">CTF Challenge Arena</h1>
-    <p class="text-center mb-3 text-sm">Solve challenges sequentially. Flags: <code>flag{...}</code>.</p>
-    <p class="text-center mb-4 text-lg text-green-300">Score: <span id="score">0</span></p>
-    <div id="challenges" class="space-y-4"></div>
+<body class="min-h-screen flex flex-col items-center justify-center p-4">
+  <div class="w-full max-w-5xl">
+    <h1 class="text-4xl font-bold text-center mb-4 text-blue-400">CTF Challenge Arena</h1>
+    <p class="text-center mb-4">Solve each challenge to unlock the next. Enter flags in the format <code>flag{example}</code>.</p>
+    <p class="text-center mb-6 text-xl font-semibold text-green-400">Score: <span id="score">0</span></p>
+    <div id="challenges" class="space-y-6"></div>
   </div>
 
   <div id="hint-modal" class="modal">
     <div class="modal-content">
-      <h2 id="modal-title" class="text-xl text-blue-200 mb-3"></h2>
-      <div id="modal-content" class="mb-3 text-sm"></div>
-      <button onclick="closeModal()" class="px-3 py-1 bg-blue-500 hover:bg-blue-600 rounded text-sm">Close</button>
+      <h2 id="modal-title" class="text-2xl font-semibold text-blue-300 mb-4"></h2>
+      <div id="modal-content" class="mb-4"></div>
+      <button onclick="closeModal()" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded">Close</button>
     </div>
   </div>
 
   <script src="challenges.js"></script>
   <script src="feedback.js"></script>
   <script>
-    const SECRET_KEY = 'ctf_secure_2025';
-    const HMAC_SECRET = 'ctf_hmac_2025';
-
-    function sanitizeInput(input) {
-      const div = document.createElement('div');
-      div.textContent = input;
-      return div.innerHTML.replace(/</g, '&lt;').replace(/>/g, '&gt;');
-    }
-
-    function encryptData(data) {
-      return CryptoJS.AES.encrypt(JSON.stringify(data), SECRET_KEY).toString();
-    }
-
-    function decryptData(encrypted) {
-      try {
-        const bytes = CryptoJS.AES.decrypt(encrypted, SECRET_KEY);
-        return JSON.parse(bytes.toString(CryptoJS.enc.Utf8));
-      } catch (e) {
-        return null;
-      }
-    }
-
-    function getHMAC(data) {
-      return CryptoJS.HmacSHA256(JSON.stringify(data), HMAC_SECRET).toString();
-    }
-
-    function validateState(data, hmac) {
-      return getHMAC(data) === hmac;
-    }
-
-    let solvedChallenges = [];
-    let score = 0;
+    // State management
+    let solvedChallenges = JSON.parse(localStorage.getItem('solvedChallenges')) || [];
     let incorrectAttempts = {};
+    let score = JSON.parse(localStorage.getItem('score')) || 0;
 
-    function loadState() {
-      const encData = localStorage.getItem('ctf_state');
-      const hmac = localStorage.getItem('ctf_hmac');
-      if (encData && hmac) {
-        const data = decryptData(encData);
-        if (data && validateState(data, hmac)) {
-          solvedChallenges = data.solved || [];
-          score = data.score || 0;
-        } else {
-          resetState();
-        }
-      }
-    }
-
-    function saveState() {
-      const data = { solved: solvedChallenges, score };
-      const encData = encryptData(data);
-      const hmac = getHMAC(data);
-      localStorage.setItem('ctf_state', encData);
-      localStorage.setItem('ctf_hmac', hmac);
-    }
-
-    function resetState() {
-      solvedChallenges = [];
-      score = 0;
-      saveState();
-    }
-
+    // Update score display
     function updateScoreDisplay() {
-      const scoreEl = document.getElementById('score');
-      if (scoreEl) scoreEl.textContent = sanitizeInput(score.toString());
+      document.getElementById('score').textContent = score;
+      localStorage.setItem('score', JSON.stringify(score));
     }
 
+    // Initialize challenge-specific setup (e.g., cookies)
     function initializeChallenges() {
       if (window.challenges && Array.isArray(window.challenges)) {
         const cookieChallenge = window.challenges.find(c => c.id === 3);
@@ -146,102 +86,90 @@
           try {
             cookieChallenge.setup();
           } catch (e) {
-            console.error('Challenge 3 init failed:', e);
+            console.error('Failed to initialize challenge 3:', e);
           }
         }
       }
     }
 
+    // Render challenges
     function renderChallenges() {
       const challengesDiv = document.getElementById('challenges');
-      if (!challengesDiv) return;
       challengesDiv.innerHTML = '';
       if (!window.challenges || !Array.isArray(window.challenges)) {
-        challengesDiv.innerHTML = '<p class="text-red-300 text-center text-sm">Error: Challenges not loaded.</p>';
-        console.error('Challenges invalid:', window.challenges);
+        challengesDiv.innerHTML = '<p class="text-red-400 text-center">Error: Challenges not loaded. Check console.</p>';
+        console.error('Challenges array is undefined or invalid:', window.challenges);
         return;
       }
       window.challenges.forEach(challenge => {
         const isUnlocked = challenge.id === 1 || solvedChallenges.includes(challenge.id - 1);
         const isSolved = solvedChallenges.includes(challenge.id);
         const card = document.createElement('div');
-        card.className = `card bg-gray-900 p-4 rounded shadow ${isUnlocked ? '' : 'opacity-50 pointer-events-none'} ${isSolved ? 'solved' : ''}`;
+        card.className = `challenge-card bg-gray-800 p-6 rounded-lg shadow-lg ${isUnlocked ? '' : 'opacity-50 cursor-not-allowed'} ${isSolved ? 'solved-card' : ''}`;
         card.innerHTML = `
-          <h2 class="text-lg font-semibold text-blue-200">${sanitizeInput(challenge.title)} (${sanitizeInput(challenge.points.toString())} pts)</h2>
-          <p class="mt-1 text-sm">${sanitizeInput(challenge.description)}</p>
+          <h2 class="text-2xl font-semibold text-blue-300">${challenge.title} (${challenge.points} points)</h2>
+          <p class="mt-2">${challenge.description}</p>
           ${isUnlocked ? `
-            ${isSolved ? '<p class="mt-1 text-green-300 text-sm font-bold">Solved!</p>' : `
-              <p class="mt-1 text-blue-300 cursor-pointer underline text-sm" onclick="showHint(${challenge.id})">Hint</p>
-              <input id="flag-${challenge.id}" type="text" placeholder="flag{...}" class="mt-2 w-full p-1 bg-gray-800 text-white rounded text-sm" ${isSolved ? 'disabled' : ''}>
-              <button onclick="submitFlag(${challenge.id})" class="mt-1 px-3 py-1 bg-blue-500 hover:bg-blue-600 rounded text-sm" ${isSolved ? 'disabled' : ''}>Submit</button>
-              <p id="feedback-${challenge.id}" class="mt-1 text-xs"></p>
+            ${isSolved ? '<p class="mt-2 text-green-400 font-bold">Solved!</p>' : `
+              <p class="mt-2 text-blue-400 cursor-pointer underline" onclick="showHint(${challenge.id})">Show Hint</p>
+              <input id="flag-${challenge.id}" type="text" placeholder="Enter flag (flag{...})" class="mt-4 w-full p-2 bg-gray-700 text-white rounded" ${isSolved ? 'disabled' : ''}>
+              <button onclick="submitFlag(${challenge.id})" class="mt-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded" ${isSolved ? 'disabled' : ''}>Submit</button>
+              <p id="feedback-${challenge.id}" class="mt-2 text-sm"></p>
             `}
-          ` : `<p class="mt-1 text-red-300 text-sm">Solve Challenge ${challenge.id - 1}</p>`}
+          ` : `<p class="mt-2 text-red-400">Solve Challenge ${challenge.id - 1} to unlock</p>`}
         `;
         challengesDiv.appendChild(card);
       });
       updateScoreDisplay();
     }
 
+    // Submit flag
     function submitFlag(challengeId) {
       const challenge = window.challenges.find(c => c.id === challengeId);
-      if (!challenge) return;
-      const input = sanitizeInput(document.getElementById(`flag-${challengeId}`).value);
+      if (!challenge) {
+        console.error(`Challenge ${challengeId} not found`);
+        return;
+      }
+      const input = document.getElementById(`flag-${challengeId}`).value;
       try {
         if (challenge.validator(input)) {
-          showConfirmation(`Correct! +${challenge.points} pts`, true);
+          showConfirmation(`Correct! Flag accepted (+${challenge.points} points)`, true);
           if (!solvedChallenges.includes(challengeId)) {
             solvedChallenges.push(challengeId);
             score += challenge.points;
-            saveState();
+            localStorage.setItem('solvedChallenges', JSON.stringify(solvedChallenges));
+            localStorage.setItem('score', JSON.stringify(score));
             incorrectAttempts[challengeId] = 0;
             renderChallenges();
           }
         } else {
           incorrectAttempts[challengeId] = (incorrectAttempts[challengeId] || 0) + 1;
-          const msg = 'Incorrect flag!';
-          showConfirmation(msg, false, incorrectAttempts[challengeId] >= 3 ? getInstructions(challengeId) : null);
+          const message = 'Incorrect flag. Try again!';
+          showConfirmation(message, false, incorrectAttempts[challengeId] >= 3 ? getInstructions(challengeId) : null);
         }
-      } catch (e) {
-        console.error(`Validation error ${challengeId}:`, e);
-        showConfirmation('Validation error.', false);
+      } catch (error) {
+        console.error(`Validation error for challenge ${challengeId}:`, error);
+        showConfirmation('Error validating flag. Check console.', false);
       }
     }
 
-    function checkIntegrity() {
-      const expected = CryptoJS.SHA256(submitFlag.toString()).toString();
-      const current = CryptoJS.SHA256(submitFlag.toString()).toString();
-      if (expected !== current) {
-        window.location.href = '/tamper.html';
-      }
-    }
-
+    // Anti-debugging
     (function() {
       const check = () => {
-        if ((window.outerWidth - window.innerWidth > 100) || (window.outerHeight - window.innerHeight > 100)) {
-          window.location.href = '/devtools.html';
+        if (window.console && (console.log || console.dir)) {
+          console.warn('DevTools detected. Some challenges are protected.');
         }
-        console.warn('DevTools detected.');
       };
-      setInterval(check, 500);
-      setInterval(checkIntegrity, 1000);
+      setInterval(check, 1000);
     })();
 
-    window.addEventListener('contextmenu', e => e.preventDefault());
-    window.addEventListener('keydown', e => {
-      if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && ['I', 'C', 'J'].includes(e.key))) {
-        e.preventDefault();
-        window.location.href = '/devtools.html';
-      }
-    });
-
+    // Initialize
     try {
-      loadState();
       initializeChallenges();
       renderChallenges();
     } catch (e) {
-      console.error('Init failed:', e);
-      document.getElementById('challenges').innerHTML = '<p class="text-red-300 text-center text-sm">Error loading.</p>';
+      console.error('Failed to render challenges:', e);
+      document.getElementById('challenges').innerHTML = '<p class="text-red-400 text-center">Error loading challenges. See console.</p>';
     }
   </script>
 </body>
