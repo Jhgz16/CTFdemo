@@ -516,10 +516,10 @@ window.challenges = [
   {
     id: 49,
     title: "Packet Tracer OSPF (Expert)",
-    description: "Analyze: router ospf 1 network " + atob("ZmxhZ3tvc3Bm9") + " area 0",
+    description: "Analyze: router ospf 1 network " + atob("ZmxhZ3tvc3BmfQ==") + " area 0",
     flag: btoa("flag{ospf}"),
     points: 200,
-    validator: input => input === atob("ZmxhZ3tvc3Bm9")
+    validator: input => input === atob("ZmxhZ3tvc3BmfQ==")
   },
   {
     id: 50,
