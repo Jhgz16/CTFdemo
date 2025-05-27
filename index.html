@@ -117,20 +117,25 @@
         return;
       }
       const input = document.getElementById(`flag-${challengeId}`).value;
-      if (challenge.validator(input)) {
-        showConfirmation(`Correct! Flag accepted (+${challenge.points} points)`, true);
-        if (!solvedChallenges.includes(challengeId)) {
-          solvedChallenges.push(challengeId);
-          score += challenge.points;
-          localStorage.setItem('solvedChallenges', JSON.stringify(solvedChallenges));
-          localStorage.setItem('score', JSON.stringify(score));
-          incorrectAttempts[challengeId] = 0;
-          renderChallenges();
+      try {
+        if (challenge.validator(input)) {
+          showConfirmation(`Correct! Flag accepted (+${challenge.points} points)`, true);
+          if (!solvedChallenges.includes(challengeId)) {
+            solvedChallenges.push(challengeId);
+            score += challenge.points;
+            localStorage.setItem('solvedChallenges', JSON.stringify(solvedChallenges));
+            localStorage.setItem('score', JSON.stringify(score));
+            incorrectAttempts[challengeId] = 0;
+            renderChallenges();
+          }
+        } else {
+          incorrectAttempts[challengeId] = (incorrectAttempts[challengeId] || 0) + 1;
+          const message = 'Incorrect flag. Try again!';
+          showConfirmation(message, false, incorrectAttempts[challengeId] >= 3 ? getInstructions(challengeId) : null);
         }
-      } else {
-        incorrectAttempts[challengeId] = (incorrectAttempts[challengeId] || 0) + 1;
-        const message = 'Incorrect flag. Try again!';
-        showConfirmation(message, false, incorrectAttempts[challengeId] >= 3 ? getInstructions(challengeId) : null);
+      } catch (e) {
+        console.error(`Validation error for challenge ${challengeId}:`, e);
+        showConfirmation('Error validating flag. Check console.', false);
       }
     }
 
