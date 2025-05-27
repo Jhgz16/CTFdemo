@@ -37,10 +37,7 @@ window.challenges = [
     description: "Flag in console.",
     flag: btoa("flag{console_log}"),
     points: 10,
-    validator: input => {
-      console.log(atob("ZmxhZ3tjb25zb2xlX2xvZ30="));
-      return input === atob("ZmxhZ3tjb25zb2xlX2xvZ30=");
-    }
+    validator: input => input === atob("ZmxhZ3tjb25zb2xlX2xvZ30=")
   },
   {
     id: 6,
