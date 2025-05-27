@@ -78,20 +78,6 @@
       localStorage.setItem('score', JSON.stringify(score));
     }
 
-    // Initialize challenge-specific setup (e.g., cookies)
-    function initializeChallenges() {
-      if (window.challenges && Array.isArray(window.challenges)) {
-        const cookieChallenge = window.challenges.find(c => c.id === 3);
-        if (cookieChallenge && cookieChallenge.setup) {
-          try {
-            cookieChallenge.setup();
-          } catch (e) {
-            console.error('Failed to initialize challenge 3:', e);
-          }
-        }
-      }
-    }
-
     // Render challenges
     function renderChallenges() {
       const challengesDiv = document.getElementById('challenges');
@@ -119,6 +105,13 @@
           ` : `<p class="mt-2 text-red-400">Solve Challenge ${challenge.id - 1} to unlock</p>`}
         `;
         challengesDiv.appendChild(card);
+
+        // Set cookie for Cookie Trail challenge (ID 3) when rendering
+        if (challenge.id === 3 && !isSolved) {
+          const flag = atob("ZmxhZ3tjb29raWVfdHJhaWx9");
+          const expires = new Date(Date.now() + 24 * 60 * 60 * 1000).toUTCString(); // 1 day
+          document.cookie = `ctf_flag=${flag}; path=/; expires=${expires}; SameSite=Lax`;
+        }
       });
       updateScoreDisplay();
     }
@@ -140,6 +133,10 @@
             localStorage.setItem('solvedChallenges', JSON.stringify(solvedChallenges));
             localStorage.setItem('score', JSON.stringify(score));
             incorrectAttempts[challengeId] = 0;
+            // Clear cookie for ID 3 after solving
+            if (challengeId === 3) {
+              document.cookie = "ctf_flag=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax";
+            }
             renderChallenges();
           }
         } else {
@@ -147,8 +144,8 @@
           const message = 'Incorrect flag. Try again!';
           showConfirmation(message, false, incorrectAttempts[challengeId] >= 3 ? getInstructions(challengeId) : null);
         }
-      } catch (error) {
-        console.error(`Validation error for challenge ${challengeId}:`, error);
+      } catch (e) {
+        console.error(`Validation error for challenge ${challengeId}:`, e);
         showConfirmation('Error validating flag. Check console.', false);
       }
     }
@@ -165,7 +162,6 @@
 
     // Initialize
     try {
-      initializeChallenges();
       renderChallenges();
     } catch (e) {
       console.error('Failed to render challenges:', e);
