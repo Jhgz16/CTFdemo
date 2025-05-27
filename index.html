@@ -17,6 +17,10 @@
     .challenge-card:hover {
       transform: scale(1.02);
     }
+    .solved-card {
+      border: 2px solid #48bb78;
+      opacity: 0.8;
+    }
     .hidden-flag {
       display: none;
     }
@@ -50,7 +54,7 @@
     <div id="challenges" class="space-y-6"></div>
   </div>
 
-  <!-- Modal for hints and instructions -->
+  <!-- Modal for hints, instructions, and confirmations -->
   <div id="hint-modal" class="modal">
     <div class="modal-content">
       <h2 id="modal-title" class="text-2xl font-semibold text-blue-300 mb-4"></h2>
@@ -71,7 +75,7 @@
           "Open the browser's developer tools (F12 or right-click > View Page Source).",
           "Search for the <style> tag in the HTML.",
           "Look for a CSS rule with #hidden-flag.",
-          "The flag is in the content property: flag{hidden_in_source}."
+          "The content property contains the flag in the format flag{...}."
         ],
         flag: "flag{hidden_in_source}",
         validator: flag => flag === "flag{hidden_in_source}"
@@ -83,9 +87,9 @@
         hint: "Try visiting ?flag=flag{query_param_flag} in the URL bar.",
         instructions: [
           "Look at the browser's URL bar.",
-          "Append ?flag=flag{query_param_flag} to the URL (e.g., http://your-site/?flag=flag{query_param_flag}).",
+          "Append ?flag= followed by the flag in the format flag{...} to the URL.",
           "Press Enter to load the URL.",
-          "Enter the flag from the query parameter: flag{query_param_flag}."
+          "Enter the flag from the query parameter into the input field."
         ],
         flag: "flag{query_param_flag}",
         validator: flag => {
@@ -103,7 +107,7 @@
           "Go to the 'Application' tab.",
           "Expand 'Cookies' and select the site URL.",
           "Find the cookie named 'flag'.",
-          "The value is the flag: flag{cookie_monster}."
+          "The cookie value is the flag in the format flag{...}."
         ],
         flag: "flag{cookie_monster}",
         validator: flag => {
@@ -120,7 +124,7 @@
           "Open developer tools (F12) and go to the 'Sources' or 'Elements' tab.",
           "Find the <style> tag in the HTML head.",
           "Look for a comment or rule containing the flag.",
-          "The flag is: flag{css_secret_flag}."
+          "The flag is in the format flag{...}."
         ],
         flag: "flag{css_secret_flag}",
         validator: flag => flag === "flag{css_secret_flag}"
@@ -133,8 +137,8 @@
         instructions: [
           "Copy the Base64 string: ZmxhZ3tiYXNlNjRfZGVjb2RlfQ==.",
           "Open the browser console (F12 > Console).",
-          "Use the atob() function: atob('ZmxhZ3tiYXNlNjRfZGVjb2RlfQ==').",
-          "The decoded string is the flag: flag{base64_decode}."
+          "Use the atob() function to decode the string: atob('ZmxhZ3tiYXNlNjRfZGVjb2RlfQ==').",
+          "The decoded string is the flag in the format flag{...}."
         ],
         flag: "flag{base64_decode}",
         validator: flag => atob("ZmxhZ3tiYXNlNjRfZGVjb2RlfQ==") === flag
@@ -147,7 +151,7 @@
         instructions: [
           "In the input field, type exactly: ' OR '1'='1 (including single quotes).",
           "Submit the input.",
-          "The system will return the flag: flag{sql_injection_win}."
+          "The system will return the flag in the format flag{...}."
         ],
         flag: "flag{sql_injection_win}",
         validator: flag => flag === "' OR '1'='1" ? "flag{sql_injection_win}" : false
@@ -161,7 +165,7 @@
           "Convert the hex string 1a0f1c0b1e1c0a1f to bytes (e.g., [0x1a, 0x0f, ...]).",
           "XOR each byte with the key 42 (0x2A).",
           "Use a script like: let hex = '1a0f1c0b1e1c0a1f'; let key = 42; let decrypted = ''; for (let i = 0; i < hex.length; i += 2) { decrypted += String.fromCharCode(parseInt(hex.slice(i, i+2), 16) ^ key); }.",
-          "The result is the flag: flag{xor_decrypted}."
+          "The result is the flag in the format flag{...}."
         ],
         flag: "flag{xor_decrypted}",
         validator: flag => {
@@ -182,9 +186,9 @@
         hint: "Run the eval code in the console or deobfuscate it manually to reveal the flag.",
         instructions: [
           "Copy the eval function to the browser console (F12 > Console).",
-          "Execute it to see the output: flag{obfuscated_flag}.",
-          "Alternatively, analyze the function: it replaces 0 with 'flag' and 1 with 'obfuscated_flag'.",
-          "The flag is: flag{obfuscated_flag}."
+          "Execute it to see the output.",
+          "Alternatively, analyze the function: it replaces 0 with 'flag' and 1 with another string, forming the flag.",
+          "The result is the flag in the format flag{...}."
         ],
         flag: "flag{obfuscated_flag}",
         validator: flag => flag === "flag{obfuscated_flag}"
@@ -196,9 +200,9 @@
         hint: "Extract the flag from the 'data' field of the JSON object.",
         instructions: [
           "Examine the JSON object provided in the description.",
-          "Identify the 'data' field: 'flag_packet_flag'.",
-          "The value needs to be formatted as a flag: flag{packet_flag}.",
-          "Enter the flag: flag{packet_flag}."
+          "Identify the 'data' field.",
+          "Format the value as a flag in the format flag{...}.",
+          "Enter the formatted flag in the input field."
         ],
         flag: "flag{packet_flag}",
         validator: flag => flag === "flag{packet_flag}"
@@ -210,9 +214,9 @@
         hint: "Analyze the JavaScript in the browser console to extract the flag.",
         instructions: [
           "Copy the JavaScript to the browser console (F12 > Console).",
-          "Execute it to reveal the output: flag{reverse_engineered}.",
+          "Execute it to reveal the output.",
           "Alternatively, inspect the code: it defines an array _0x1234 with one element.",
-          "The flag is: flag{reverse_engineered}."
+          "The array's first element is the flag in the format flag{...}."
         ],
         flag: "flag{reverse_engineered}",
         validator: flag => (function(){var _0x1234=['flag{reverse_engineered}'];return _0x1234[0];})() === flag
@@ -229,16 +233,19 @@
       challengesDiv.innerHTML = '';
       challenges.forEach(challenge => {
         const isUnlocked = challenge.id === 1 || solvedChallenges.includes(challenge.id - 1);
+        const isSolved = solvedChallenges.includes(challenge.id);
         const card = document.createElement('div');
-        card.className = `challenge-card bg-gray-800 p-6 rounded-lg shadow-lg ${isUnlocked ? '' : 'opacity-50 cursor-not-allowed'}`;
+        card.className = `challenge-card bg-gray-800 p-6 rounded-lg shadow-lg ${isUnlocked ? '' : 'opacity-50 cursor-not-allowed'} ${isSolved ? 'solved-card' : ''}`;
         card.innerHTML = `
           <h2 class="text-2xl font-semibold text-blue-300">${challenge.title}</h2>
           <p class="mt-2">${challenge.description}</p>
           ${isUnlocked ? `
-            <p class="mt-2 text-blue-400 cursor-pointer underline" onclick="showHint('${challenge.hint}')">Show Hint</p>
-            <input id="flag-${challenge.id}" type="text" placeholder="Enter flag (flag{...})" class="mt-4 w-full p-2 bg-gray-700 text-white rounded">
-            <button onclick="submitFlag(${challenge.id})" class="mt-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded">Submit</button>
-            <p id="feedback-${challenge.id}" class="mt-2 text-sm"></p>
+            ${isSolved ? '<p class="mt-2 text-green-400 font-bold">Solved!</p>' : `
+              <p class="mt-2 text-blue-400 cursor-pointer underline" onclick="showHint('${challenge.hint}')">Show Hint</p>
+              <input id="flag-${challenge.id}" type="text" placeholder="Enter flag (flag{...})" class="mt-4 w-full p-2 bg-gray-700 text-white rounded" ${isSolved ? 'disabled' : ''}>
+              <button onclick="submitFlag(${challenge.id})" class="mt-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded" ${isSolved ? 'disabled' : ''}>Submit</button>
+              <p id="feedback-${challenge.id}" class="mt-2 text-sm"></p>
+            `}
           ` : `<p class="mt-2 text-red-400">Solve Challenge ${challenge.id - 1} to unlock</p>`}
         `;
         challengesDiv.appendChild(card);
@@ -265,6 +272,19 @@
       modal.style.display = 'flex';
     }
 
+    // Show confirmation in modal
+    function showConfirmation(message, isCorrect, instructions = null) {
+      const modal = document.getElementById('hint-modal');
+      const modalTitle = document.getElementById('modal-title');
+      const modalContent = document.getElementById('modal-content');
+      modalTitle.textContent = isCorrect ? 'Success!' : 'Incorrect Submission';
+      modalContent.innerHTML = `<p class="${isCorrect ? 'text-green-400' : 'text-red-400'}">${message}</p>`;
+      if (!isCorrect && instructions) {
+        modalContent.innerHTML += '<p class="mt-4">Detailed Instructions:</p><ul class="list-disc pl-5">' + instructions.map(item => `<li>${item}</li>`).join('') + '</ul>';
+      }
+      modal.style.display = 'flex';
+    }
+
     // Close modal
     function closeModal() {
       document.getElementById('hint-modal').style.display = 'none';
@@ -274,9 +294,8 @@
     function submitFlag(challengeId) {
       const challenge = challenges.find(c => c.id === challengeId);
       const input = document.getElementById(`flag-${challengeId}`).value;
-      const feedback = document.getElementById(`feedback-${challengeId}`);
       if (challenge.validator(input)) {
-        feedback.innerHTML = '<span class="text-green-400">Correct! Flag accepted.</span>';
+        showConfirmation('Correct! Flag accepted.', true);
         if (!solvedChallenges.includes(challengeId)) {
           solvedChallenges.push(challengeId);
           localStorage.setItem('solvedChallenges', JSON.stringify(solvedChallenges));
@@ -285,10 +304,8 @@
         }
       } else {
         incorrectAttempts[challengeId] = (incorrectAttempts[challengeId] || 0) + 1;
-        feedback.innerHTML = '<span class="text-red-400">Incorrect flag. Try again!</span>';
-        if (incorrectAttempts[challengeId] >= 3) {
-          showInstructions(challenge.instructions);
-        }
+        const message = 'Incorrect flag. Try again!';
+        showConfirmation(message, false, incorrectAttempts[challengeId] >= 3 ? challenge.instructions : null);
       }
     }
 
