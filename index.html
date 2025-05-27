@@ -64,8 +64,8 @@
     </div>
   </div>
 
-  <script src="./feedback.js"></script>
-  <script src="./challenges.js"></script>
+  <script src="challenges.js"></script>
+  <script src="feedback.js"></script>
   <script>
     // State management
     let solvedChallenges = JSON.parse(localStorage.getItem('solvedChallenges')) || [];
@@ -84,7 +84,7 @@
       challengesDiv.innerHTML = '';
       if (!window.challenges || !Array.isArray(window.challenges)) {
         challengesDiv.innerHTML = '<p class="text-red-400 text-center">Error: Challenges not loaded. Check console.</p>';
-        console.error('Challenges array is undefined or not an array.');
+        console.error('Challenges array is undefined or invalid:', window.challenges);
         return;
       }
       window.challenges.forEach(challenge => {
@@ -113,7 +113,7 @@
     function submitFlag(challengeId) {
       const challenge = window.challenges.find(c => c.id === challengeId);
       if (!challenge) {
-        console.error(`Challenge ${challengeId} not found.`);
+        console.error(`Challenge ${challengeId} not found`);
         return;
       }
       const input = document.getElementById(`flag-${challengeId}`).value;
@@ -134,21 +134,21 @@
       }
     }
 
-    // Anti-debugging (simplified)
+    // Anti-debugging
     (function() {
       const check = () => {
-        if (window.console && console.log) {
+        if (window.console && (console.log || console.dir)) {
           console.warn('DevTools detected. Some challenges are protected.');
         }
       };
-      setTimeout(check, 1000);
+      setInterval(check, 1000);
     })();
 
     // Initialize
     try {
       renderChallenges();
     } catch (e) {
-      console.error('Error rendering challenges:', e);
+      console.error('Failed to render challenges:', e);
       document.getElementById('challenges').innerHTML = '<p class="text-red-400 text-center">Error loading challenges. See console.</p>';
     }
   </script>
