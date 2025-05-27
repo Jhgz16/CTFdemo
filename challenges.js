@@ -21,11 +21,6 @@ window.challenges = [
     description: "Flag in cookie.",
     flag: btoa("flag{cookie_trail}"),
     points: 10,
-    setup: () => {
-      const flag = atob("ZmxhZ3tjb29raWVfdHJhaWx9");
-      const expires = new Date(Date.now() + 24 * 60 * 60 * 1000).toUTCString();
-      document.cookie = `ctf_flag=${flag}; path=/; expires=${expires}; SameSite=Lax`;
-    },
     validator: input => input === atob("ZmxhZ3tjb29raWVfdHJhaWx9")
   },
   {
