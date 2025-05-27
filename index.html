@@ -64,8 +64,8 @@
     </div>
   </div>
 
-  <script src="feedback.js"></script>
-  <script src="challenges.js"></script>
+  <script src="./feedback.js"></script>
+  <script src="./challenges.js"></script>
   <script>
     // State management
     let solvedChallenges = JSON.parse(localStorage.getItem('solvedChallenges')) || [];
@@ -82,7 +82,12 @@
     function renderChallenges() {
       const challengesDiv = document.getElementById('challenges');
       challengesDiv.innerHTML = '';
-      challenges.forEach(challenge => {
+      if (!window.challenges || !Array.isArray(window.challenges)) {
+        challengesDiv.innerHTML = '<p class="text-red-400 text-center">Error: Challenges not loaded. Check console.</p>';
+        console.error('Challenges array is undefined or not an array.');
+        return;
+      }
+      window.challenges.forEach(challenge => {
         const isUnlocked = challenge.id === 1 || solvedChallenges.includes(challenge.id - 1);
         const isSolved = solvedChallenges.includes(challenge.id);
         const card = document.createElement('div');
@@ -106,7 +111,11 @@
 
     // Submit flag
     function submitFlag(challengeId) {
-      const challenge = challenges.find(c => c.id === challengeId);
+      const challenge = window.challenges.find(c => c.id === challengeId);
+      if (!challenge) {
+        console.error(`Challenge ${challengeId} not found.`);
+        return;
+      }
       const input = document.getElementById(`flag-${challengeId}`).value;
       if (challenge.validator(input)) {
         showConfirmation(`Correct! Flag accepted (+${challenge.points} points)`, true);
@@ -125,19 +134,23 @@
       }
     }
 
-    // Anti-debugging
+    // Anti-debugging (simplified)
     (function() {
       const check = () => {
-        if (window.console && (console.log || console.dir)) {
-          // Simulate protection (in production, redirect or lock)
+        if (window.console && console.log) {
           console.warn('DevTools detected. Some challenges are protected.');
         }
       };
-      setInterval(check, 1000);
+      setTimeout(check, 1000);
     })();
 
     // Initialize
-    renderChallenges();
+    try {
+      renderChallenges();
+    } catch (e) {
+      console.error('Error rendering challenges:', e);
+      document.getElementById('challenges').innerHTML = '<p class="text-red-400 text-center">Error loading challenges. See console.</p>';
+    }
   </script>
 </body>
 </html>
