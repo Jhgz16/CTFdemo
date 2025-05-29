@@ -10,13 +10,13 @@ window.feedback = {
   16: { hint: "GraphQL queries can leak data.", instructions: "Extract flag from query response." },
   23: { hint: "Audio metadata may hide data.", instructions: "Use exiftool to find flag in audio." },
   25: { hint: "Check the S3 bucket URL.", instructions: "Download flag.txt from s3://ctf-example-bucket/." },
-  26: { hint: "File headers contain metadata.", true, instructions: "Extract flag from PDF /Creator with exiftool." },
+  26: { hint: "File headers contain metadata.", instructions: "Extract flag from PDF /Creator with exiftool." },
   35: { hint: "Steganography hides data in images.", instructions: "Use steghide with no password." },
   37: { hint: "Memory dumps may contain plaintext.", instructions: "Use strings to find flag." },
   38: { hint: "Firmware may have secrets.", instructions: "Use strings to extract flag." },
-  {44: { hint: "PCAP files capture traffic.", instructions: "Use Wireshark to find flag in HTTP payload." },
+  44: { hint: "PCAP files capture traffic.", instructions: "Use Wireshark to find flag in HTTP payload." },
   50: { hint: "Binaries may have flaws.", instructions: "Exploit buffer overflow to reveal flag." }
-  // Generic hints for IDs 8–22, 24, 27–34, 36, 39–43, 45–49
+  // Note: IDs 8–11, 13–15, 17–22, 24, 27–34, 36, 39–43, 45–49 use generic hints
 };
 
 function getInstructions(challengeId) {
